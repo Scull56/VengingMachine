@@ -34,9 +34,9 @@
             </p>
          </div>
          <div>
-            <div class="h5">
+            <h5>
                {card.price} руб.
-            </div>
+            </h5>
          </div>
       </div>
    </div>
@@ -46,5 +46,9 @@
    .img {
       max-height: 250px;
       object-fit: contain;
+   }
+
+   .card {
+      overflow: hidden;
    }
 </style>

@@ -6,7 +6,7 @@
 
 <div class="text-end">
    <div class="d-flex">
-      {#each mapToArray($balance) as coin}
+      {#each mapToArray($balance) as coin (coin[0])}
          <CoinDepost denomination={coin[0]} classes="me-1" />
       {/each}
    </div>

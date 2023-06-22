@@ -1,5 +1,5 @@
 import { writable } from 'svelte/store';
-import type DrinkCard from '#types/Drink';
+import type DrinkCard from '#types/DrinkCard';
 
 let drinks
 
@@ -8,7 +8,7 @@ export default drinks = writable(
       {
          id: 1,
          imgSrc: "/assets/images/drinks/1.jpg",
-         title: "Cola",
+         title: "Colaaaaaaaaaaaa aaaaaaaaaaaaaaaaaa aaaaaaaaaaaaaaaaaaaa aaaaaaaaaaaaaaaaa",
          price: 80,
          count: 4,
       },

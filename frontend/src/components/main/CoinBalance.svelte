@@ -1,5 +1,5 @@
 <script lang="ts">
-   import CoinBtn from "./CoinBtn.svelte";
+   import CoinBtn from "#components/CoinBtn.svelte";
    import balance from "#data/balance";
 
    export let denomination: number;

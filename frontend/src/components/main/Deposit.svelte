@@ -3,6 +3,7 @@
    import earnings from "#data/earnings";
    import balance from "#data/balance";
    import mapToArray from "#utils/mapToArray";
+   import availability from "#data/availability";
 
    let state: boolean = $deposit > 0;
 
@@ -13,18 +14,25 @@
          let reminder = $deposit;
          let earningsArray = mapToArray($earnings).sort((a, b) => b[0] - a[0]);
          let index = 0;
+         let denomination: number;
 
-         console.log(earningsArray);
+         while (reminder > 0 && earningsArray[index]) {
+            denomination = earningsArray[index][0];
 
-         while (reminder > 0) {
-            if (earningsArray[index][1] > 0) {
-               if (reminder - earningsArray[index][0]) {
-                  --earningsArray[index][1];
-                  $earnings.set(
-                     earningsArray[index][0],
-                     earningsArray[index][1]
-                  );
+            if (
+               earningsArray[index][1] > 0 &&
+               $availability.get(denomination)
+            ) {
+               if (reminder - denomination >= 0) {
+                  earningsArray[index][1] -= 1;
+
+                  $earnings.set(denomination, earningsArray[index][1]);
+
+                  $balance.set(denomination, $balance.get(denomination) + 1);
+
                   reminder -= earningsArray[index][0];
+               } else {
+                  ++index;
                }
             } else {
                ++index;
@@ -33,7 +41,7 @@
 
          earnings.set($earnings);
          balance.set($balance);
-         deposit.set(0);
+         deposit.set(reminder);
       }
    }
 </script>

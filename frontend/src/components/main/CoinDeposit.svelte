@@ -1,5 +1,6 @@
 <script lang="ts">
-   import CoinBtn from "./CoinBtn.svelte";
+   import CoinBtn from "#components/CoinBtn.svelte";
+   import availability from "#data/availability";
    import balance from "#data/balance";
    import deposit from "#data/deposit";
    import earnings from "#data/earnings";
@@ -9,13 +10,13 @@
 
    let state: boolean;
 
-   $: state = $balance.get(denomination) > 0;
+   $: state = $balance.get(denomination) > 0 && $availability.get(denomination);
 
    function incrementDeposit() {
       if (state) {
          $balance.set(denomination, $balance.get(denomination) - 1);
 
-         $earnings.set(denomination, $balance.get(denomination) + 1);
+         $earnings.set(denomination, $earnings.get(denomination) + 1);
 
          deposit.set($deposit + denomination);
 

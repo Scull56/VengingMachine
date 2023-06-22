@@ -47,6 +47,7 @@
       }
 
       &.disabled {
+         pointer-events: all;
          border-color: transparent;
       }
    }

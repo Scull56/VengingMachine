@@ -1,9 +1,11 @@
 <script lang="ts">
    import Header from "#components/Header.svelte";
-   import Balance from "#components/Balance.svelte";
-   import DepositBar from "#components/DepositBar.svelte";
-   import Deposit from "#components/Deposit.svelte";
+   import Footer from "#components/Footer.svelte";
+   import Balance from "#components/main/Balance.svelte";
+   import DepositBar from "#components/main/DepositBar.svelte";
+   import Deposit from "#components/main/Deposit.svelte";
    import DrinksLayout from "#components/DrinksLayout.svelte";
+   import DrinkCard from "#components/main/DrinkCard.svelte";
 </script>
 
 <main>
@@ -24,9 +26,12 @@
          </div>
       </div>
       <h4>Выберите напиток:</h4>
-      <DrinksLayout />
+      <DrinksLayout let:prop={card}>
+         <DrinkCard {card} />
+      </DrinksLayout>
    </div>
 </main>
+<Footer />
 
 <style>
    h4 {
