@@ -4,8 +4,8 @@
    import Balance from "#components/main/Balance.svelte";
    import DepositBar from "#components/main/DepositBar.svelte";
    import Deposit from "#components/main/Deposit.svelte";
-   import DrinksLayout from "#components/DrinksLayout.svelte";
-   import DrinkCard from "#components/main/DrinkCard.svelte";
+   import ProductsLayout from "#components/ProductsLayout.svelte";
+   import ProductCard from "#components/main/ProductCard.svelte";
 </script>
 
 <main>
@@ -25,10 +25,10 @@
             <Deposit />
          </div>
       </div>
-      <h4>Выберите напиток:</h4>
-      <DrinksLayout let:prop={card}>
-         <DrinkCard {card} />
-      </DrinksLayout>
+      <h4>Выберите товар:</h4>
+      <ProductsLayout let:prop={card}>
+         <ProductCard {card} />
+      </ProductsLayout>
    </div>
 </main>
 <Footer />

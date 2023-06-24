@@ -1,17 +1,32 @@
+using Microsoft.EntityFrameworkCore;
+using VendingMachine.Data;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+builder.Services.AddDbContext<VendingDbContext>(options =>
+{
+    options.UseSqlServer(builder.Configuration.GetConnectionString("VendingDb"));
+});
 
 builder.Services.AddControllers();
 
 var app = builder.Build();
-
-// Configure the HTTP request pipeline.
 
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.UseDefaultFiles();
+app.UseStaticFiles();
+
+app.UseRouting();
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapDefaultControllerRoute();
+});
+
+app.MapFallbackToFile("index.html");
 
 app.Run();

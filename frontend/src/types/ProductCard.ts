@@ -1,4 +1,4 @@
-export default interface DrinkCard {
+export default interface ProductCard {
    id: number,
    title: string,
    price: number,

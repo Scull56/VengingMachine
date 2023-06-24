@@ -1,20 +1,21 @@
 <script lang="ts">
-   import CoinBtn from "#components/CoinBtn.svelte";
-   import availability from "#data/availability";
+	import CoinBtn from "#components/CoinBtn.svelte";
+	import availability from "#data/availability";
+	import { setAvailability } from "#requests/availability";
 
-   export let denomination: number;
-   export let state: boolean;
-   export let classes: string = "";
+	export let denomination: number;
+	export let state: boolean;
+	export let classes: string = "";
 
-   function changeState() {
-      state = !state;
+	function changeState() {
+	state = !state;
 
-      $availability.set(denomination, state);
+	$availability.set(denomination, state);
 
-      availability.set($availability);
+	availability.set($availability);
 
-      console.log($availability.get(denomination));
-   }
+	setAvailability(denomination, state);
+	}
 </script>
 
 <div class="d-flex align-items-center {classes}">
