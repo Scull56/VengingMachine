@@ -3,6 +3,9 @@
    import { addProducts } from "#requests/products";
    import ResponseError from "./ResponseError.svelte";
    import updateProducts from "#scripts/products";
+   import { getContext } from "svelte";
+
+   let key: string = getContext("key");
 
    let form;
    let files;
@@ -17,7 +20,7 @@
       fileState = fileValid(files);
 
       if (fileState) {
-         let res = await addProducts(form);
+         let res = await addProducts(key, form);
 
          if (res.status == 200) {
             fileInput.value = "";

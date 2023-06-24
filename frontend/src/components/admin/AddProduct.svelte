@@ -8,6 +8,9 @@
       image as imgValid,
    } from "#validation/product";
    import updateProducts from "#scripts/products";
+   import { getContext } from "svelte";
+
+   let key: string = getContext("key");
 
    let form;
    let fileInput;
@@ -37,7 +40,7 @@
       check = titleState && priceState && countState && fileState;
 
       if (check) {
-         let res = await addProductQuery(form);
+         let res = await addProductQuery(key, form);
 
          if (res.status == 200) {
             fileInput.value = "";

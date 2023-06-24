@@ -1,6 +1,5 @@
 <script lang="ts">
-   import Header from "#components/Header.svelte";
-   import Footer from "#components/Footer.svelte";
+   import Layout from "#components/Layout.svelte";
    import Balance from "#components/main/Balance.svelte";
    import DepositBar from "#components/main/DepositBar.svelte";
    import Deposit from "#components/main/Deposit.svelte";
@@ -8,8 +7,7 @@
    import ProductCard from "#components/main/ProductCard.svelte";
 </script>
 
-<main>
-   <Header />
+<Layout>
    <div class="container">
       <div class="row mb-4 g-4">
          <div class="col-lg-4">
@@ -30,8 +28,7 @@
          <ProductCard {card} />
       </ProductsLayout>
    </div>
-</main>
-<Footer />
+</Layout>
 
 <style>
    h4 {

@@ -10,7 +10,9 @@
 
    let state: boolean;
 
-   $: state = $balance.get(denomination) > 0 && $availability.get(denomination);
+   $: state =
+      $balance.get(denomination) > 0 &&
+      $availability.get(denomination) != undefined;
 
    function incrementDeposit() {
       if (state) {

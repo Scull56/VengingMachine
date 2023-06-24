@@ -1,5 +1,5 @@
 export async function getProducts() {
-   return await fetch('/Products/GetAll')
+   return await fetch('/Products/GetProducts')
 }
 
 export async function addProduct(key: string, form: HTMLFormElement) {
@@ -10,7 +10,7 @@ export async function addProduct(key: string, form: HTMLFormElement) {
 }
 
 export async function addProducts(key: string, form: HTMLFormElement) {
-   return await fetch(`/Products/AddFile?key=${key}`, {
+   return await fetch(`/Products/AddProducts?key=${key}`, {
       method: "POST",
       body: new FormData(form),
    })

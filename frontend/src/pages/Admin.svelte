@@ -1,19 +1,21 @@
 <script lang="ts">
-   import Header from "#components/Header.svelte";
    import ProductsLayout from "#components/ProductsLayout.svelte";
    import ProductCardEdit from "#components/admin/ProductCardEdit.svelte";
    import CoinBlockBar from "#components/admin/CoinBlockBar.svelte";
    import AddProduct from "#components/admin/AddProduct.svelte";
    import LoadFile from "#components/admin/LoadFile.svelte";
-   import Footer from "#components/Footer.svelte";
+   import Layout from "#components/Layout.svelte";
    import { getParamFromUrl } from "#utils/getParam";
    import { verifiyKey } from "#requests/auth";
+   import { setContext } from "svelte";
 
    let key = getParamFromUrl("key");
 
    if (key === undefined) {
       location.replace("/");
    }
+
+   setContext("key", key);
 
    let checkPromise = verifiyKey(key);
 
@@ -24,10 +26,9 @@
    });
 </script>
 
-<main>
-   {#await checkPromise then check}
-      {#if check.status == 200}
-         <Header />
+{#await checkPromise then check}
+   {#if check.status == 200}
+      <Layout>
          <div class="container">
             <div class="row mb-4 g-3">
                <div class="col-md-3">
@@ -46,7 +47,6 @@
                <ProductCardEdit {card} />
             </ProductsLayout>
          </div>
-      {/if}
-   {/await}
-</main>
-<Footer />
+      </Layout>
+   {/if}
+{/await}

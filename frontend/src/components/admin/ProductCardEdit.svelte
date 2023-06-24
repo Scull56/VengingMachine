@@ -5,9 +5,16 @@
       price as priceValid,
       count as countValid,
    } from "#validation/product";
-   import { updateProduct as updateProductQuery } from "#requests/products";
+   import {
+      updateProduct as updateProductQuery,
+      deleteProduct as deleteProductQuery,
+   } from "#requests/products";
+   import { getContext } from "svelte";
+   import updateProducts from "#scripts/products";
 
    export let card;
+
+   let key: string = getContext("key");
 
    let form;
 
@@ -29,11 +36,31 @@
       priceState = priceValid(price);
 
       if (titleState && countState && priceState) {
-         let res = await updateProductQuery(form);
+         let res = await updateProductQuery(key, form);
 
          if (res.status != 200) {
+            let body = res.json();
+
             errorState = true;
+            message = body["message"];
+         } else {
+            await updateProducts();
          }
+      }
+   }
+
+   async function deleteProduct(e) {
+      e.preventDefault();
+
+      let res = await deleteProductQuery(key, card.id);
+
+      if (res.status != 200) {
+         let body = res.json();
+
+         errorState = true;
+         message = body["message"];
+      } else {
+         await updateProducts();
       }
    }
 </script>
@@ -93,7 +120,11 @@
             >
                Сохранить
             </button>
-            <button type="button" class="btn btn-secondary mb-2">
+            <button
+               type="button"
+               class="btn btn-secondary mb-2"
+               on:click={(e) => deleteProduct(e)}
+            >
                Удалить
             </button>
          </div>

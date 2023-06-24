@@ -2,6 +2,12 @@ export function getParamFromUrl(param: string) {
    let params = location.search;
    let result: string | undefined
 
+   if (params.length == 0) {
+      return result
+   }
+
+   params = params.slice(1);
+
    params
       .split("&")
       .find(

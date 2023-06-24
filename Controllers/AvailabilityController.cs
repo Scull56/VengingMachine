@@ -1,7 +1,7 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using VendingMachine.Data;
 using VendingMachine.Models;
+using VendingMachine.Protect;
 
 namespace VendingMachine.Controllers
 {
@@ -12,7 +12,7 @@ namespace VendingMachine.Controllers
         public AvailabilityController(VendingDbContext db) => _dbContext = db;
 
         [HttpGet]
-        public JsonResult GetAvailability()
+        public JsonResult Get()
         {
             var list = _dbContext.Availabilities.Select((Availability item) => new object[] {item.Denomination, item.State}).ToList();
 
@@ -21,8 +21,9 @@ namespace VendingMachine.Controllers
             return new JsonResult(list);
         }
 
+        [AdminKey]
         [HttpPut]
-        public async void SetAvailability(string key, int denomination, bool state)
+        public async void Set(int denomination, bool state)
         {
 
             var availability = _dbContext.Availabilities.Find((Availability item) => item.Denomination == denomination);

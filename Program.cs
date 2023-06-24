@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using VendingMachine.Data;
+using VendingMachine.Protect;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,14 +15,12 @@ var app = builder.Build();
 
 app.UseHttpsRedirection();
 
-app.UseAuthorization();
-
-app.MapControllers();
-
 app.UseDefaultFiles();
 app.UseStaticFiles();
 
 app.UseRouting();
+app.UseAdminKey();
+app.UseAuthorization();
 app.UseEndpoints(endpoints =>
 {
     endpoints.MapDefaultControllerRoute();

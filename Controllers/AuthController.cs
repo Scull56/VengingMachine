@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using VendingMachine.Data;
+using VendingMachine.Protect;
 
 namespace VendingMachine.Controllers
 {
@@ -8,18 +8,16 @@ namespace VendingMachine.Controllers
         public AuthController() { }
 
         [HttpGet]
-        public string VerifyKey(string key)
+        public void VerifyKey(string key)
         {
-            if (key.Length > 0)
+            if (key == AdminKeyAttribute.Key)
             {
                 Response.StatusCode = 200;
-
-                return "true";
             }
-
-            Response.StatusCode = 400;
-            
-            return "false";
+            else
+            {
+                Response.StatusCode = 400;
+            }
         }
     }
 }
