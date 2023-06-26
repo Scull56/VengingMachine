@@ -8,11 +8,10 @@
    export let denomination: number;
    export let classes: string = "";
 
-   let state: boolean;
+   let state: boolean =
+      $balance.get(denomination) > 0 && $availability.get(denomination);
 
-   $: state =
-      $balance.get(denomination) > 0 &&
-      $availability.get(denomination) != undefined;
+   $: state = $balance.get(denomination) > 0 && $availability.get(denomination);
 
    function incrementDeposit() {
       if (state) {
@@ -30,5 +29,10 @@
 </script>
 
 <div class="d-flex align-items-center {classes}">
-   <CoinBtn {denomination} classes="me-1" {state} on:click={incrementDeposit} />
+   <CoinBtn
+      {denomination}
+      classes="me-1"
+      bind:state
+      on:click={incrementDeposit}
+   />
 </div>

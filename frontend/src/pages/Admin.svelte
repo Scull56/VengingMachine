@@ -8,6 +8,7 @@
    import { getParamFromUrl } from "#utils/getParam";
    import { verifiyKey } from "#requests/auth";
    import { setContext } from "svelte";
+   import ResponseError from "#components/ResponseError.svelte";
 
    let key = getParamFromUrl("key");
 
@@ -48,5 +49,6 @@
             </ProductsLayout>
          </div>
       </Layout>
+      <ResponseError />
    {/if}
 {/await}

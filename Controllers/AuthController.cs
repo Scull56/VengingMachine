@@ -7,17 +7,11 @@ namespace VendingMachine.Controllers
     {
         public AuthController() { }
 
+        [AdminKey]
         [HttpGet]
-        public void VerifyKey(string key)
+        public void VerifyKey()
         {
-            if (key == AdminKeyAttribute.Key)
-            {
-                Response.StatusCode = 200;
-            }
-            else
-            {
-                Response.StatusCode = 400;
-            }
+            Response.StatusCode = 200;
         }
     }
 }

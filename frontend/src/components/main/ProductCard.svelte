@@ -1,23 +1,43 @@
 <script lang="ts">
    import products from "#data/products";
    import deposit from "#data/deposit";
+   import conf from "#data/config";
+   import { buyProduct } from "#requests/products";
+   import errorState from "#data/error";
 
    export let card;
 
    let state: boolean = card.count > 0;
 
-   function payProduct() {
-      if (state && $deposit >= card.price) {
-         deposit.set($deposit - card.price);
+   $: state = card.count > 0;
 
-         $products.find((item) => item.id == card.id).count = card.count - 1;
-         products.set($products);
+   async function payProduct() {
+      if (state && $deposit >= card.price) {
+         let res = await buyProduct(card.id, 1);
+
+         if (res.status == 200) {
+            deposit.set($deposit - card.price);
+
+            $products.find((item) => item.id == card.id).count = card.count - 1;
+            products.set($products);
+         } else {
+            let message =
+               res.status == 500
+                  ? `Ошибка на сервере, повторите попытку позже`
+                  : `Ошибка ${res.status}: ${(await res.json()).message}`;
+
+            errorState.set({ state: true, message });
+         }
       }
    }
 </script>
 
 <div class="card h-100">
-   <img src={card.imgSrc} class="card-img-top img" alt="напиток" />
+   <img
+      src={conf.imagesPath + card.image}
+      class="card-img-top img"
+      alt="напиток"
+   />
    <div class="card-body">
       <div class="row align-items-center">
          <div class="col-8">
@@ -30,7 +50,11 @@
                Купить
             </button>
             <p>
-               В наличии: {card.count} шт.
+               {#if card.count > 0}
+                  В наличии: {card.count} шт.
+               {:else}
+                  Нет в наличии
+               {/if}
             </p>
          </div>
          <div class="col-4">

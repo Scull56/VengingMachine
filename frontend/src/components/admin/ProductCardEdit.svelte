@@ -1,5 +1,4 @@
 <script lang="ts">
-   import ResponseError from "./ResponseError.svelte";
    import {
       title as titleValid,
       price as priceValid,
@@ -11,6 +10,8 @@
    } from "#requests/products";
    import { getContext } from "svelte";
    import updateProducts from "#scripts/products";
+   import conf from "#data/config";
+   import errorState from "#data/error";
 
    export let card;
 
@@ -21,8 +22,6 @@
    let titleState = true;
    let priceState = true;
    let countState = true;
-   let errorState = false;
-   let message = "";
 
    let title = card.title;
    let count = card.count;
@@ -39,10 +38,12 @@
          let res = await updateProductQuery(key, form);
 
          if (res.status != 200) {
-            let body = res.json();
+            let message =
+               res.status == 500
+                  ? `Ошибка на сервере, повторите попытку позже`
+                  : `Ошибка ${res.status}: ${(await res.json()).message}`;
 
-            errorState = true;
-            message = body["message"];
+            errorState.set({ state: true, message });
          } else {
             await updateProducts();
          }
@@ -55,10 +56,12 @@
       let res = await deleteProductQuery(key, card.id);
 
       if (res.status != 200) {
-         let body = res.json();
+         let message =
+            res.status == 500
+               ? `Ошибка на сервере, повторите попытку позже`
+               : `Ошибка ${res.status}: ${(await res.json()).message}`;
 
-         errorState = true;
-         message = body["message"];
+         errorState.set({ state: true, message });
       } else {
          await updateProducts();
       }
@@ -66,7 +69,11 @@
 </script>
 
 <div class="card h-100">
-   <img src={card.imgSrc} class="card-img-top img" alt="напиток" />
+   <img
+      src={conf.imagesPath + card.image}
+      class="card-img-top img"
+      alt="напиток"
+   />
    <div class="card-body">
       <form action="" bind:this={form}>
          <input type="hidden" name="id" value={card.id} />
@@ -131,9 +138,6 @@
       </form>
    </div>
 </div>
-<ResponseError bind:state={errorState}>
-   {message}
-</ResponseError>
 
 <style lang="scss">
    .img {

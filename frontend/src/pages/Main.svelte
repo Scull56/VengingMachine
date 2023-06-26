@@ -5,6 +5,14 @@
    import Deposit from "#components/main/Deposit.svelte";
    import ProductsLayout from "#components/ProductsLayout.svelte";
    import ProductCard from "#components/main/ProductCard.svelte";
+   import ResponseError from "#components/ResponseError.svelte";
+   import error from "#data/error";
+
+   let errorState;
+   let errorMessage;
+
+   $: errorState = $error.state;
+   $: errorMessage = $error.message;
 </script>
 
 <Layout>
@@ -29,6 +37,7 @@
       </ProductsLayout>
    </div>
 </Layout>
+<ResponseError />
 
 <style>
    h4 {

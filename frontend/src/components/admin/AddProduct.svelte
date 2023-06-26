@@ -1,14 +1,14 @@
 <script lang="ts">
    import { addProduct as addProductQuery } from "#requests/products";
-   import ResponseError from "./ResponseError.svelte";
    import {
       title as titleValid,
       count as countValid,
       price as priceValid,
-      image as imgValid,
+      image as imageValid,
    } from "#validation/product";
    import updateProducts from "#scripts/products";
    import { getContext } from "svelte";
+   import errorState from "#data/error";
 
    let key: string = getContext("key");
 
@@ -19,8 +19,6 @@
    let priceState = true;
    let countState = true;
    let fileState = true;
-   let errorState = false;
-   let message = "";
 
    let title = "Напиток";
    let count = 0;
@@ -35,7 +33,7 @@
       titleState = titleValid(title);
       priceState = priceValid(price);
       countState = countValid(count);
-      fileState = imgValid(files);
+      fileState = imageValid(files);
 
       check = titleState && priceState && countState && fileState;
 
@@ -50,9 +48,12 @@
 
             updateProducts();
          } else {
-            message = `Ошибка ${res.status}: ${(await res.json()).message}`;
+            let message =
+               res.status == 500
+                  ? `Ошибка на сервере, повторите попытку позже`
+                  : `Ошибка ${res.status}: ${(await res.json()).message}`;
 
-            errorState = true;
+            errorState.set({ state: true, message });
          }
       }
    }
@@ -108,7 +109,7 @@
             type="file"
             id="image"
             name="image"
-            accept=".jpg"
+            accept=".jpg, .jpeg"
             bind:files
             bind:this={fileInput}
          />
@@ -127,6 +128,3 @@
       </div>
    </div>
 </form>
-<ResponseError bind:state={errorState}>
-   {message}
-</ResponseError>

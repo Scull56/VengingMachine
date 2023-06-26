@@ -38,6 +38,32 @@ namespace VendingMachine.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Availabilities");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Denomination = 1,
+                            State = true
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Denomination = 2,
+                            State = true
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Denomination = 5,
+                            State = true
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Denomination = 10,
+                            State = true
+                        });
                 });
 
             modelBuilder.Entity("VendingMachine.Models.Product", b =>
@@ -65,6 +91,16 @@ namespace VendingMachine.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Products");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Count = 5,
+                            Image = "1.jpg",
+                            Price = 50,
+                            Title = "Напиток"
+                        });
                 });
 #pragma warning restore 612, 618
         }

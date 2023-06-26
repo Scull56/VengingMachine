@@ -9,7 +9,6 @@ namespace VendingMachine.Data
         public DbSet<Availability> Availabilities { get; set; } = null!;
 
         public VendingDbContext(DbContextOptions<VendingDbContext> options) : base(options) {
-            Database.EnsureCreated();
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

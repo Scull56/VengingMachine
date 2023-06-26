@@ -9,6 +9,12 @@ namespace VendingMachine.Controllers
     {
         private readonly VendingDbContext _dbContext;
 
+        private readonly string imagesPath = Path.Combine(Environment.CurrentDirectory, "products_images");
+
+        private readonly string[] supportedTableContentTypes = new string[] { "application/vnd.ms-excel", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" };
+        private readonly string[] supportedImageContentTypes = new string[] { "image/jpg", "image/jpeg" };
+        private readonly string[] supportedImageExtensions = new string[] { ".jpg", ".jpeg" };
+
         public ProductsController(VendingDbContext db) => _dbContext = db;
 
         [HttpGet]
@@ -16,32 +22,88 @@ namespace VendingMachine.Controllers
         {
             Response.StatusCode = 200;
 
-            return new JsonResult(_dbContext.Products.ToList());
+            return new JsonResult(_dbContext.Products.OrderByDescending(product => product.Id).ToList());
+        }
+
+        [HttpPut]
+        public async Task<JsonResult> Buy(int id, int count)
+        {
+            var product = await _dbContext.Products.FindAsync(id);
+
+            if (product == null)
+            {
+                Response.StatusCode = 400;
+
+                return new JsonResult(new {message = "Can't find product" });
+            }
+
+            if (product.Count - count < 0)
+            {
+                Response.StatusCode = 400;
+
+                return new JsonResult(new { message = "The quantity of the product is less than the requested count" });
+            }
+
+            product.Count -= count;
+
+            await _dbContext.SaveChangesAsync();
+
+            Response.StatusCode = 200;
+
+            return new JsonResult("");
         }
 
         [AdminKey]
         [HttpPost]
         public async Task<JsonResult> AddProducts()
-        {
-            Response.StatusCode = 200;
+        {   
+            IFormFile? table = null;
 
-            IFormFile? file = Request.Form.Files[0];
+            var images = new List<IFormFile>();
 
-            var extenstion = Path.GetExtension(file.FileName);
-
-            if (file == null)
+            if (Request.Form.Files.Count == 0)
             {
                 Response.StatusCode = 400;
-                return new JsonResult(new { message = "Undefined file" });
+
+                return new JsonResult(new { message = "Undefined table file and images" });
             }
 
-            if (extenstion != ".xls" && extenstion != ".xlsx")
+            foreach (var file in Request.Form.Files)
+            {
+                if (supportedTableContentTypes.Contains(file.ContentType))
+                {
+                    table = file;
+
+                    continue;
+                }
+                
+                if (supportedImageContentTypes.Contains(file.ContentType))
+                {
+                    images.Add(file);
+
+                    continue;
+                }
+
+                Response.StatusCode = 400;
+
+                return new JsonResult(new { message = "Was detected file with unsupported content type. Table file must have .xls or .xlsx extension. Images must have .jpg or .jpeg extenstions" });
+            }
+
+            if (table == null)
             {
                 Response.StatusCode = 400;
-                return new JsonResult(new { message = "the file must have extension .xls or .xlsx" });
+
+                return new JsonResult(new { message = "Undefined table file" });
             }
 
-            var workbook = new Aspose.Cells.Workbook(file.OpenReadStream());
+            if (images.Count == 0)
+            {
+                Response.StatusCode = 400;
+
+                return new JsonResult(new { message = "Undefined any images" });
+            }
+
+            var workbook = new Aspose.Cells.Workbook(table.OpenReadStream());
 
             var sheet = workbook.Worksheets[0];
 
@@ -53,37 +115,47 @@ namespace VendingMachine.Controllers
 
             while (true)
             {
-                var title = (string)cells[$"A{i}"].Value;
-                var priceStr = (string)cells[$"B{i}"].Value;
-                var countStr = (string)cells[$"C{i}"].Value;
-                var image = (string)cells[$"D{i}"].Value;
-                var imageExtension = Path.GetExtension((string)image);
+                var title = cells[$"A{i}"].Value != null ? cells[$"A{i}"].Value.ToString() : "";
+                var priceStr = cells[$"B{i}"].Value != null ? cells[$"B{i}"].Value.ToString() : "";
+                var countStr = cells[$"C{i}"].Value != null ? cells[$"C{i}"].Value.ToString(): "";
+                var image = cells[$"D{i}"].Value != null ? cells[$"D{i}"].Value.ToString(): "";
 
                 if (title.Length == 0 && priceStr.Length == 0 && countStr.Length == 0 && image.Length == 0)
                 {
                     break;
                 }
 
-                var errors = validateProductData(title, priceStr, countStr);
+                var imageExtension = Path.GetExtension(image);
 
-                if (errors.Count > 0 || imageExtension != ".jpg" && imageExtension != ".jpeg")
+                var errors = validateProductData(title, countStr, priceStr);
+
+                if (!supportedImageExtensions.Contains(imageExtension))
+                {
+                    errors.Add("the image must have extension .jpg or .jpeg");
+                }
+
+                var imageFileIndex = images.FindIndex(file => file.FileName == image);
+
+                if (imageFileIndex == -1)
+                {
+                    errors.Add("cant find image file by defined name");
+                }
+
+                if (errors.Count > 0)
                 {
                     Response.StatusCode = 400;
 
-                    if (imageExtension != ".jpg" && imageExtension != ".jpeg")
-                    {
-                        errors.Add("image file name has wrong extansion, it's must be .jpg or .jpeg");
-                    }
-
                     return new JsonResult(new { message = $"Error on line {i}: " + String.Join("; ", errors) });
                 }
+
+                string tempImageName = $"_{i - 1}{imageExtension}";
 
                 var product = new Product
                 {
                     Title = title,
                     Price = int.Parse(priceStr),
                     Count = int.Parse(countStr),
-                    Image = image
+                    Image = imageFileIndex.ToString()
                 };
 
                 products.Add(product);
@@ -92,6 +164,26 @@ namespace VendingMachine.Controllers
             }
 
             await _dbContext.AddRangeAsync(products);
+
+            await _dbContext.SaveChangesAsync();
+
+            products.ForEach(product =>
+            {
+                var imageIndex = int.Parse(product.Image);
+
+                var imageFile = images[imageIndex];
+
+                var newImageName = $"{product.Id}{Path.GetExtension(imageFile.FileName)}";
+
+                product.Image = newImageName;
+
+                string path = Path.Combine(imagesPath, newImageName);
+
+                using (FileStream fs = new FileStream(path, FileMode.Create))
+                {
+                    imageFile.CopyTo(fs);
+                }
+            });
 
             await _dbContext.SaveChangesAsync();
 
@@ -107,49 +199,58 @@ namespace VendingMachine.Controllers
             var title = Request.Form["title"];
             var count = Request.Form["count"];
             var price = Request.Form["price"];
-            IFormFile? image = Request.Form.Files[0];
+            IFormFile? image;
 
-            var errors = validateProductData(title, price, count);
+            if (Request.Form.Files.Count == 0)
+            {
+                Response.StatusCode = 400;
+
+                return new JsonResult(new { message = "Undefined image" });
+            }
+
+            image = Request.Form.Files[0];
+
+            var errors = validateProductData(title, count, price);
 
             if (errors.Count > 0)
             {
                 Response.StatusCode = 400;
+
                 return new JsonResult(new { message = String.Join("; ", errors) });
             }
 
-            if (image == null)
+            string imageContentType = image.ContentType;
+
+            if (!supportedImageContentTypes.Contains(imageContentType))
             {
                 Response.StatusCode = 400;
-                return new JsonResult(new { message = "Undefined image" });
-            }
 
-            string imageExtension = Path.GetExtension(image.FileName);
-
-            if (imageExtension != ".jpeg" && imageExtension != ".jpg")
-            {
-                Response.StatusCode = 400;
                 return new JsonResult(new { message = "the image must have extension .jpg or .jpeg" });
-            }
-
-            int nextId = _dbContext.Products.LastOrDefault().Id + 1;
-
-            string imageName = $"{nextId}{imageExtension}";
-
-            string path = Path.Combine(Environment.CurrentDirectory, "wwwroot", "assets", "images", "products", imageName);
-
-            using (FileStream fs = new FileStream(path, FileMode.Create))
-            {
-                image.CopyTo(fs);
             }
 
             var product = new Product {
                 Title = title,
                 Count = int.Parse(count),
                 Price = int.Parse(price),
-                Image = imageName
+                Image = ""
             };
 
             await _dbContext.Products.AddAsync(product);
+
+            await _dbContext.SaveChangesAsync();
+
+            string imageExtension = Path.GetExtension(image.FileName);
+
+            string imageName = $"{product.Id}{imageExtension}";
+
+            product.Image = imageName;
+
+            string path = Path.Combine(imagesPath, imageName);
+
+            using (FileStream fs = new FileStream(path, FileMode.Create))
+            {
+                image.CopyTo(fs);
+            }
 
             await _dbContext.SaveChangesAsync();
 
@@ -167,19 +268,21 @@ namespace VendingMachine.Controllers
             var count = Request.Form["count"];
             var price = Request.Form["price"];
 
-            var errors = validateProductData(title, price, count);
+            var errors = validateProductData(title, count, price);
 
             if (errors.Count > 0)
             {
                 Response.StatusCode = 400;
+
                 return new JsonResult(new { message = String.Join("; ", errors) });
             }
 
-            var product = await _dbContext.Products.FindAsync((Product item) => item.Id == int.Parse(id));
+            var product = await _dbContext.Products.FindAsync(int.Parse(id));
 
             if (product == null)
             {
                 Response.StatusCode = 400;
+
                 return new JsonResult(new { message = "Can't find product for update" });
             }
 
@@ -198,15 +301,23 @@ namespace VendingMachine.Controllers
         [HttpDelete]
         public async Task<JsonResult> Delete(int id)
         {
-            var product = await _dbContext.Products.FindAsync((Product item) => item.Id == id);
+            var product = await _dbContext.Products.FindAsync(id);
 
             if (product == null)
             {
                 Response.StatusCode = 400;
+
                 return new JsonResult(new { message = "Can't find product for delete" });
             }
 
             _dbContext.Products.Remove(product);
+
+            try
+            {
+                System.IO.File.Delete(Path.Combine(imagesPath, product.Image));
+            }
+            catch { 
+            }
 
             await _dbContext.SaveChangesAsync();
 

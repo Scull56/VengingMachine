@@ -15,4 +15,4 @@ async function init() {
 
 init()
 
-export default products = writable([])
+export default products = writable(undefined)

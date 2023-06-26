@@ -2,6 +2,12 @@ export async function getProducts() {
    return await fetch('/Products/GetProducts')
 }
 
+export async function buyProduct(id: number, count: number) {
+   return await fetch(`/Products/Buy?id=${id}&count=${count}`, {
+      method: "PUT"
+   })
+}
+
 export async function addProduct(key: string, form: HTMLFormElement) {
    return await fetch(`/Products/Add?key=${key}`, {
       method: "POST",

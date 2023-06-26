@@ -1,7 +1,7 @@
 import { writable, type Writable } from 'svelte/store';
 import { getAvailability } from '#requests/availability';
 
-let availability: Writable<Map<number, boolean>>
+let availability: Writable<Map<number, boolean> | undefined>
 
 async function init() {
    let res = await getAvailability()
@@ -16,6 +16,4 @@ async function init() {
 
 init()
 
-export default availability = writable(
-   new Map<number, boolean>()
-)
+export default availability = writable(undefined)

@@ -4,10 +4,13 @@ namespace VendingMachine.Protect
 {
     public class AdminKeyMiddleware
     {
+        private string _adminKey;
+
         private readonly RequestDelegate _next;
 
-        public AdminKeyMiddleware(RequestDelegate next)
+        public AdminKeyMiddleware(RequestDelegate next, string adminKey)
         {
+            _adminKey = adminKey;
             _next = next;
         }
 
@@ -18,33 +21,51 @@ namespace VendingMachine.Protect
             var controller = context.Request.RouteValues["controller"];
             var controllerMethod = context.Request.RouteValues["action"];
 
-            if (controller != null && controllerMethod != null)
+            if (controller == null || controllerMethod == null)
             {
-                var controllerStr = controller.ToString();
-                var methodStr = controllerMethod.ToString();
+                await _next(context);
 
-                Type[] typelist = Assembly.GetExecutingAssembly().GetTypes().Where(t => t.Namespace == "VendingMachine.Controllers").ToArray();
+                return;
+            }
 
-                Type controllerClass = typelist.First((Type type) => type.Name == controllerStr + "Controller");
+            var controllerStr = controller.ToString();
+            var methodStr = controllerMethod.ToString();
 
-                if (controllerClass != null)
-                {
-                    var method = controllerClass.GetMethod(methodStr);
+            Type[] typelist = Assembly.GetExecutingAssembly().GetTypes().Where(t => t.Namespace == "VendingMachine.Controllers").ToArray();
 
-                    if (method != null)
-                    {
-                        var attribute = method.GetCustomAttribute(typeof(AdminKeyAttribute));
+            Type controllerClass = typelist.First((Type type) => type.Name == controllerStr + "Controller");
 
-                        if (attribute != null)
-                        {
-                            if (key != AdminKeyAttribute.Key)
-                            {
-                                context.Response.StatusCode = 403;
-                                await context.Response.WriteAsync(@"{""message"": ""Wrong key for access"" ");
-                            }
-                        }
-                    }
-                }
+            if (controllerClass == null)
+            {
+                await _next(context);
+
+                return;
+            }
+
+            var method = controllerClass.GetMethod(methodStr);
+
+            if (method == null)
+            {
+                await _next(context);
+
+                return;
+            }
+
+            var attribute = method.GetCustomAttribute(typeof(AdminKeyAttribute));
+
+            if (attribute == null)
+            {
+                await _next(context);
+
+                return;
+            }
+
+            if (key != _adminKey)
+            {
+                context.Response.StatusCode = 403;
+                await context.Response.WriteAsync(@"{""message"": ""Wrong key for access"" ");
+
+                return;
             }
 
             await _next(context);
@@ -54,9 +75,9 @@ namespace VendingMachine.Protect
     public static class AdminKeyMiddlewareExtensions
     {
         public static IApplicationBuilder UseAdminKey(
-            this IApplicationBuilder builder)
+            this IApplicationBuilder builder, string adminKey)
         {
-            return builder.UseMiddleware<AdminKeyMiddleware>();
+            return builder.UseMiddleware<AdminKeyMiddleware>(adminKey);
         }
     }
 }

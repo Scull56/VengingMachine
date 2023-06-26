@@ -3,6 +3,7 @@
    import availability from "#data/availability";
    import { setAvailability } from "#requests/availability";
    import { getContext } from "svelte";
+   import errorState from "#data/error";
 
    let key: string = getContext("key");
 
@@ -10,14 +11,23 @@
    export let state: boolean;
    export let classes: string = "";
 
-   function changeState() {
-      state = !state;
+   async function changeState() {
+      let res = await setAvailability(key, denomination, !state);
 
-      $availability.set(denomination, state);
+      if (res.status == 200) {
+         state = !state;
 
-      availability.set($availability);
+         $availability.set(denomination, state);
 
-      setAvailability(key, denomination, state);
+         availability.set($availability);
+      } else {
+         let message =
+            res.status == 500
+               ? `Ошибка на сервере, повторите попытку позже`
+               : `Ошибка ${res.status}: ${(await res.json()).message}`;
+
+         errorState.set({ state: true, message });
+      }
    }
 </script>
 

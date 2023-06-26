@@ -23,10 +23,9 @@ namespace VendingMachine.Controllers
 
         [AdminKey]
         [HttpPut]
-        public async void Set(int denomination, bool state)
+        public void Set(int denomination, bool state)
         {
-
-            var availability = _dbContext.Availabilities.Find((Availability item) => item.Denomination == denomination);
+            var availability = _dbContext.Availabilities.First((Availability item) => item.Denomination == denomination);
 
             if (availability == null)
             {
@@ -39,7 +38,7 @@ namespace VendingMachine.Controllers
             {
                 availability.State = state;
 
-                await _dbContext.SaveChangesAsync();
+                _dbContext.SaveChanges();
             }
 
             Response.StatusCode = 200;
