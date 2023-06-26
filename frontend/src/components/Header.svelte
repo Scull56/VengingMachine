@@ -4,7 +4,7 @@
          class="d-flex flex-wrap align-items-center justify-content-sm-between justify-content-start"
       >
          <h3>
-            <a href="/" class="logo">Wending Machine</a>
+            <a href="/" class="logo">Vending Machine</a>
          </h3>
       </div>
    </div>
